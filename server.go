@@ -12,7 +12,7 @@ URL: <input type="text" name="url">
 </form>
 `
 
-var store = NewURLStore()
+var store = NewURLStore("store.gob")
 
 func Add(w http.ResponseWriter, r *http.Request) {
 	url := r.FormValue("url")
