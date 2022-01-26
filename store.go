@@ -7,10 +7,12 @@ import (
 	"sync"
 )
 
+const saveQueueLength = 1000
+
 type URLStore struct {
 	urls map[string]string
 	mu   sync.RWMutex // 读写锁，保证线程安全
-	file *os.File
+	save chan record
 }
 
 type record struct {
@@ -21,12 +23,11 @@ type record struct {
 func NewURLStore(fileName string) *URLStore {
 	s := &URLStore{ // & 取地址，即变为指针
 		urls: make(map[string]string),
+		save: make(chan record, saveQueueLength), // 带缓冲 channel
 	}
-	f, err := os.OpenFile(fileName, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644)
-	DropError(err, "Error opening URLStore:")
-	s.file = f
-	err = s.load()
+	err := s.load(fileName)
 	DropError(err, "Error loading URLStore:")
+	go s.saveLoop(fileName) // 保存文件协程
 	return s
 }
 
@@ -56,8 +57,7 @@ func (s *URLStore) Put(url string) string {
 	for {
 		key := genKey(s.Count())
 		if s.Set(key, url) {
-			err := s.save(key, url)
-			DropError(err, "Error saving to URLStore:")
+			s.save <- record{key, url} // 发送到 channel
 			return key
 		}
 	}
@@ -65,12 +65,14 @@ func (s *URLStore) Put(url string) string {
 }
 
 // 解码保存的文件，并存入内存
-func (s *URLStore) load() error {
-	if _, err := s.file.Seek(0, 0); err != nil { // 寻址文件起始位置
+func (s *URLStore) load(fileName string) error {
+	f, err := os.Open(fileName)
+	DropError(err, "Error opening URLStore:")
+	if err != nil {
 		return err
 	}
-	d := gob.NewDecoder(s.file)
-	var err error
+	defer f.Close()
+	d := gob.NewDecoder(f)
 	for err == nil { // 循环解码
 		var r record // 记录
 		if err = d.Decode(&r); err == nil {
@@ -80,11 +82,19 @@ func (s *URLStore) load() error {
 	if err == io.EOF { // 解码成功
 		return nil
 	}
+	DropError(err, "Error decoding URLStore:")
 	return err
 }
 
-// 编码后保存至文件
-func (s *URLStore) save(key, url string) error {
-	e := gob.NewEncoder(s.file)
-	return e.Encode(record{key, url})
+// 从 channel 中获取记录并且编码到文件
+func (s *URLStore) saveLoop(fileName string) {
+	f, err := os.OpenFile(fileName, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
+	DropError(err, "Error opening URLStore:")
+	defer f.Close()
+	e := gob.NewEncoder(f)
+	for {
+		r := <-s.save // 从 channel 接收数据
+		err = e.Encode(r)
+		DropError(err, "Error saving to URLStore:")
+	}
 }

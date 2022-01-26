@@ -1,28 +1,26 @@
 package shorturl
 
 import (
+	"flag"
 	"fmt"
 	"net/http"
 )
 
-const AddForm = `
-<form method="POST" action="/add">
-URL: <input type="text" name="url">
-<input type="submit" value="Add">
-</form>
-`
+var (
+	listenAddr = flag.String("http", ":8080", "http listen address")
+	dataFile   = flag.String("file", "store.gob", "data store file name")
+	hostname   = flag.String("host", "localhost:8080", "http host name")
+)
 
-var store = NewURLStore("store.gob")
+var store *URLStore
 
-func Add(w http.ResponseWriter, r *http.Request) {
-	url := r.FormValue("url")
-	if url == "" {
-		w.Header().Set("Content-Type", "text/html")
-		fmt.Fprint(w, AddForm)
-		return
-	}
-	key := store.Put(url)
-	fmt.Fprintf(w, "http://localhost:8080/%s", key)
+func Serve() {
+	fmt.Println("Start Server...")
+	flag.Parse()
+	store = NewURLStore(*dataFile)
+	http.HandleFunc("/", Redirect)
+	http.HandleFunc("/add", Add)
+	http.ListenAndServe(*listenAddr, nil)
 }
 
 func Redirect(w http.ResponseWriter, r *http.Request) {
@@ -34,3 +32,21 @@ func Redirect(w http.ResponseWriter, r *http.Request) {
 	}
 	http.Redirect(w, r, url, http.StatusFound)
 }
+
+func Add(w http.ResponseWriter, r *http.Request) {
+	url := r.FormValue("url")
+	if url == "" {
+		w.Header().Set("Content-Type", "text/html")
+		fmt.Fprint(w, AddForm)
+		return
+	}
+	key := store.Put(url)
+	fmt.Fprintf(w, "http://%s/%s", *hostname, key)
+}
+
+const AddForm = `
+<form method="POST" action="/add">
+URL: <input type="text" name="url">
+<input type="submit" value="Add">
+</form>
+`
