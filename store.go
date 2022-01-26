@@ -1,7 +1,7 @@
 package shorturl
 
 import (
-	"encoding/gob"
+	"encoding/json"
 	"io"
 	"os"
 	"sync"
@@ -72,7 +72,7 @@ func (s *URLStore) load(fileName string) error {
 		return err
 	}
 	defer f.Close()
-	d := gob.NewDecoder(f)
+	d := json.NewDecoder(f)
 	for err == nil { // 循环解码
 		var r record // 记录
 		if err = d.Decode(&r); err == nil {
@@ -91,7 +91,7 @@ func (s *URLStore) saveLoop(fileName string) {
 	f, err := os.OpenFile(fileName, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
 	DropError(err, "Error opening URLStore:")
 	defer f.Close()
-	e := gob.NewEncoder(f)
+	e := json.NewEncoder(f)
 	for {
 		r := <-s.save // 从 channel 接收数据
 		err = e.Encode(r)
