@@ -1,5 +1,6 @@
-package shorturl
+package shortener
 
+/*
 import (
 	"encoding/json"
 	"errors"
@@ -146,3 +147,4 @@ func (s *ProxyStore) Put(url, key *string) error {
 	s.urls.Set(key, url) // update local cache
 	return nil
 }
+*/

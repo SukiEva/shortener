@@ -16,11 +16,11 @@ type Store interface {
 	Close() error
 }
 
-func NewStore() (Store, error) {
+func NewStore(addr, pwd string, dbn int) (Store, error) {
 	db := redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
-		Password: "",
-		DB:       0,
+		Addr:     addr,
+		Password: pwd,
+		DB:       dbn,
 	})
 	ctx := context.Background()
 	if _, err := db.Ping(ctx).Result(); err != nil {

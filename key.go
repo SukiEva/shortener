@@ -1,4 +1,4 @@
-package shorturl
+package shortener
 
 var keyChar = []byte("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 
