@@ -1,4 +1,4 @@
-package shortener
+package deprecated
 
 var keyChar = []byte("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 

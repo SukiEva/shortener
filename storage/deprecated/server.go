@@ -1,6 +1,5 @@
-package shortener
+package deprecated
 
-/*
 import (
 	"flag"
 	"fmt"
@@ -71,4 +70,3 @@ URL: <input type="text" name="url">
 <input type="submit" value="Add">
 </form>
 `
-*/

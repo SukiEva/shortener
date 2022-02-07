@@ -1,10 +1,10 @@
-package shortener
+package deprecated
 
-/*
 import (
 	"encoding/json"
 	"errors"
 	"io"
+	"log"
 	"net/rpc"
 	"os"
 	"sync"
@@ -147,4 +147,9 @@ func (s *ProxyStore) Put(url, key *string) error {
 	s.urls.Set(key, url) // update local cache
 	return nil
 }
-*/
+
+func DropError(err error, msg string) {
+	if err != nil {
+		log.Println(msg)
+	}
+}

@@ -15,6 +15,7 @@ type Config struct {
 		Password string `json:"password"`
 		Db       int    `json:"db"`
 	} `json:"redis"`
+	Exp int `json:"exp"`
 }
 
 func Read(path string) (*Config, error) {

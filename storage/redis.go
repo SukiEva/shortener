@@ -11,6 +11,7 @@ import (
 type Store interface {
 	Set(token, url string, exp int) (bool, error)
 	Get(token string) (string, error)
+	Check(token string) bool
 	Expire(token string, exp int) error
 	Delete(token string) error
 	Close() error
@@ -50,6 +51,14 @@ func (r *rdb) Get(token string) (string, error) {
 	return r.db.Get(r.ctx, token).Result()
 }
 
+// Check Return true if key not exists
+func (r *rdb) Check(token string) bool {
+	if _, err := r.Get(token); err == redis.Nil {
+		return true
+	}
+	return false
+}
+
 // Expire Refresh expire time for existing token
 func (r *rdb) Expire(token string, exp int) error {
 	if exp < 0 {
@@ -57,7 +66,7 @@ func (r *rdb) Expire(token string, exp int) error {
 	}
 	_, err := r.db.Expire(r.ctx, token, time.Hour*24*time.Duration(exp)).Result()
 	if err == redis.Nil {
-		return errors.New("token is not exists")
+		return errors.New("token not exists")
 	}
 	return err
 }
