@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+  <title>Shortener</title>
+  <link rel="stylesheet" href="css/reset.css" />
+  <link rel="stylesheet" href="css/index.css" />
+</head>
+
+<body>
+
+  <div class="wrap" id="app">
+    <!-- 背景和布局啥的 -->
+    <div class="bgimg"><img src="img/bg4.png" /></div>
+    <div class="search_form">
+      <div class="logo"><img src="img/lg2.png" alt="logo" /></div>
+      <div class="form_group">
+        <input type="text" v-model="city"  @keyup.enter="searchWeather"   class="input_txt" placeholder="Please enter the URL"/>
+        <button class="input_sub">
+          Shortener!
+        </button>
+      </div>
+    </div>
+  </div>
+  <!-- 开发环境版本，包含了有帮助的命令行警告 -->
+  <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+  <!-- 官网提供的 axios 在线地址 -->
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+  <!-- 自己的js -->
+  <script src="./js/main.js"></script>
+</body>
+
+</html>
