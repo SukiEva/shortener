@@ -17,8 +17,15 @@ var (
 
 func (s *shorten) Serve() {
 	log.Println("Start Server...")
-	s.router.POST("/api/v1/generate", generate(s))
-	s.router.POST("/api/v1/expire", expire(s))
+
+	s.router.Static("assets", "web/assets")
+	s.router.LoadHTMLFiles("web/page.html", "web/404.html")
+
+	api := s.router.Group("api/v1")
+	{
+		api.POST("/generate", generate(s))
+		api.POST("/expire", expire(s))
+	}
 	s.router.GET("/:token", redirect(s))
 	s.router.GET("/", home(s))
 	http.ListenAndServe(s.conf.Server.Port, s.router)
@@ -48,7 +55,9 @@ func redirect(s *shorten) gin.HandlerFunc {
 		t := c.Param("token")
 		log.Printf("Redirect request from %s (%s), token: %s\n", c.Request.RemoteAddr, c.Request.Referer(), t)
 		if s.store.Check(t) {
-			http.NotFound(c.Writer, c.Request)
+			c.HTML(http.StatusNotFound, "404.html", gin.H{
+				"title": "404 Not Found",
+			})
 			return
 		}
 		url, err := s.store.Get(t)
@@ -63,7 +72,7 @@ func redirect(s *shorten) gin.HandlerFunc {
 
 func generate(s *shorten) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		log.Printf("Generate request from %s (%s)", c.Request.RemoteAddr, c.Request.Referer())
+		log.Printf("Generate request from %s (%s)\n", c.Request.RemoteAddr, c.Request.Referer())
 		jsonObj := generated{}
 		if err := c.ShouldBindJSON(&jsonObj); err != nil {
 			log.Println("Api Generate Error: ", err)
@@ -85,7 +94,7 @@ func generate(s *shorten) gin.HandlerFunc {
 			})
 			return
 		}
-		log.Printf("Generate %s to %s\n", jsonObj.Url, strings.Join([]string{s.conf.Server.Host, s.conf.Server.Port, "/"}, ""))
+		log.Printf("Generate %s to %s\n", jsonObj.Url, strings.Join([]string{s.conf.Server.Host, s.conf.Server.Port, "/", t}, ""))
 		c.JSON(http.StatusOK, gin.H{
 			"code":  "200",
 			"token": t,
@@ -96,7 +105,7 @@ func generate(s *shorten) gin.HandlerFunc {
 
 func expire(s *shorten) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		log.Printf("Expire request from %s (%s)", c.Request.RemoteAddr, c.Request.Referer())
+		log.Printf("Expire request from %s (%s)\n", c.Request.RemoteAddr, c.Request.Referer())
 		jsonObj := expired{}
 		if err := c.ShouldBindJSON(&jsonObj); err != nil {
 			log.Println("Api Expire Error: ", err)
@@ -124,7 +133,9 @@ func expire(s *shorten) gin.HandlerFunc {
 
 func home(s *shorten) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		c.Redirect(http.StatusTemporaryRedirect, "https://github.com/SukiEva/shortener")
+		c.HTML(http.StatusOK, "page.html", gin.H{
+			"title": "shorten",
+		})
 	}
 }
 
