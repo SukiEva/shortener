@@ -6,12 +6,8 @@
 
 ## Screenshots
 
-<table>
-<tr>
-<td><img src="docs/imgs/before.png"/></td>
-<td><img src="docs/imgs/after.png"/></td>
-</tr>
-</table>
+<img src="docs/imgs/before.png"/>
+<img src="docs/imgs/after.png"/>
 
 ## Config
 
